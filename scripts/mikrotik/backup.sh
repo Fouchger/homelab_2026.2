@@ -38,6 +38,7 @@ MT_PORT="${MIKROTIK_SSH_PORT:-22}"
 MT_KEY="${MIKROTIK_SSH_KEY_PATH:-}"
 
 BACKUP_ROOT="${HOME}/.config/homelab_2026_2/mikrotik/backups"
+RETENTION_COUNT="${MIKROTIK_BACKUP_RETENTION_COUNT:-30}"
 TS="$(date +%Y%m%d_%H%M%S)"
 PREFIX="mikrotik_${MT_HOST}_${TS}"
 
@@ -98,3 +99,31 @@ if [[ "${MIKROTIK_BACKUP_CLEANUP:-yes}" = "yes" ]]; then
 fi
 
 ok "MikroTik backup completed. Stored under: ${BACKUP_ROOT}"
+
+prune_backups() {
+  local keep="${1}"
+  [[ "${keep}" =~ ^[0-9]+$ ]] || keep=30
+  if [[ "${keep}" -le 0 ]]; then
+    warn "Backup retention disabled (MIKROTIK_BACKUP_RETENTION_COUNT=${keep})."
+    return 0
+  fi
+
+  # We prune by unique backup prefix so export+binary pairs are kept together.
+  local prefixes
+  prefixes=$(ls -1 "${BACKUP_ROOT}"/mikrotik_"${MT_HOST}"_*.rsc 2>/dev/null \
+    | sed -E 's/\.rsc$//' \
+    | sort -r || true)
+
+  local count=0
+  while IFS= read -r p; do
+    [[ -z "${p}" ]] && continue
+    count=$((count + 1))
+    if [[ "${count}" -gt "${keep}" ]]; then
+      rm -f "${p}.rsc" "${p}.backup" || true
+    fi
+  done <<<"${prefixes}"
+
+  ok "Applied retention policy: kept last ${keep} backup sets for ${MT_HOST}."
+}
+
+prune_backups "${RETENTION_COUNT}"

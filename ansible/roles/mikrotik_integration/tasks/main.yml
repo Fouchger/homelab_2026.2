@@ -19,6 +19,7 @@
       - iputils-ping
       - dnsutils
       - sshpass
+      - msmtp-mta
     state: present
     update_cache: true
 
@@ -41,6 +42,8 @@
     - { src: "mikrotik-backup.sh", dest: "backup.sh" }
     - { src: "mikrotik-healthcheck.sh", dest: "healthcheck.sh" }
     - { src: "mikrotik-configure-dns.sh", dest: "configure-dns.sh" }
+    - { src: "notify.sh", dest: "notify.sh" }
+    - { src: "mikrotik-apply-start-config.sh", dest: "apply-start-config.sh" }
 
 - name: Deploy systemd unit for MikroTik backups
   ansible.builtin.template:

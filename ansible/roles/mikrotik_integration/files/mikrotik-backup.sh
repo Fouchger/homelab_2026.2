@@ -26,6 +26,7 @@ MT_PORT="${MIKROTIK_SSH_PORT:-22}"
 MT_KEY="${MIKROTIK_SSH_KEY_PATH:-}"
 
 BACKUP_ROOT="/root/.config/homelab_2026_2/mikrotik/backups"
+RETENTION_COUNT="${MIKROTIK_BACKUP_RETENTION_COUNT:-30}"
 mkdir -p "${BACKUP_ROOT}"
 
 need() { command -v "$1" >/dev/null 2>&1 || { log "ERROR missing dependency: $1"; exit 1; }; }
@@ -40,7 +41,7 @@ if [[ -n "${MT_KEY}" && -r "${MT_KEY}" ]]; then
   scp_args+=("-i" "${MT_KEY}")
 fi
 
-PREFIX="homelab_2026_2_$(date -u +%Y%m%dT%H%M%SZ)"
+PREFIX="mikrotik_${MT_HOST}_$(date +%Y%m%d_%H%M%S)"
 
 run_remote() {
   local cmd="$1"
@@ -83,3 +84,30 @@ if [[ "${MIKROTIK_BACKUP_CLEANUP:-yes}" = "yes" ]]; then
 fi
 
 log "OK Backup completed in ${BACKUP_ROOT}"
+
+prune_backups() {
+  local keep="${1}"
+  [[ "${keep}" =~ ^[0-9]+$ ]] || keep=30
+  if [[ "${keep}" -le 0 ]]; then
+    log "WARN Retention pruning disabled (MIKROTIK_BACKUP_RETENTION_COUNT=${keep})."
+    return 0
+  fi
+
+  local prefixes
+  prefixes=$(ls -1 "${BACKUP_ROOT}"/mikrotik_"${MT_HOST}"_*.rsc 2>/dev/null \
+    | sed -E 's/\.rsc$//' \
+    | sort -r || true)
+
+  local count=0
+  while IFS= read -r p; do
+    [[ -z "${p}" ]] && continue
+    count=$((count + 1))
+    if [[ "${count}" -gt "${keep}" ]]; then
+      rm -f "${p}.rsc" "${p}.backup" || true
+    fi
+  done <<<"${prefixes}"
+
+  log "OK Applied retention policy: kept last ${keep} backup sets for ${MT_HOST}."
+}
+
+prune_backups "${RETENTION_COUNT}"

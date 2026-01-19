@@ -64,3 +64,11 @@ mikrotik.health: ## Run MikroTik health checks now
 .PHONY: mikrotik.advertise_dns
 mikrotik.advertise_dns: ## Configure MikroTik to advertise dns01 + dns02 via DHCP
 	@scripts/mikrotik/configure-dns.sh
+
+.PHONY: mikrotik.start_config.install
+mikrotik.start_config.install: ## Install local MikroTik start config into ~/.config path
+	@scripts/mikrotik/install-start-config.sh
+
+.PHONY: mikrotik.start_config.apply
+mikrotik.start_config.apply: ## Apply local MikroTik start config to the router (opt-in)
+	@scripts/mikrotik/apply-start-config.sh

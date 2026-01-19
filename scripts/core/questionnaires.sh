@@ -50,22 +50,43 @@ prompt_proxmox() {
 
 prompt_mikrotik() {
   local host user port key_path
+  local retention
   host="$(state_get mikrotik_host "192.168.88.1")"
   user="$(state_get mikrotik_ssh_user "admin")"
   port="$(state_get mikrotik_ssh_port "22")"
   key_path="$(state_get mikrotik_ssh_key_path "${HOME}/.ssh/id_ed25519")"
+  retention="$(state_get mikrotik_backup_retention_count "30")"
 
   host="$(ui_input "MikroTik" "MikroTik host (RouterOS)" "$host")"
   user="$(ui_input "MikroTik" "SSH user" "$user")"
   port="$(ui_input "MikroTik" "SSH port" "$port")"
   key_path="$(ui_input "MikroTik" "SSH key path (recommended)" "$key_path")"
+  retention="$(ui_input "MikroTik" "Backup retention (keep last N sets, 0 disables pruning)" "$retention")"
 
   state_set mikrotik_host "$host"
   state_set mikrotik_ssh_user "$user"
   state_set mikrotik_ssh_port "$port"
   state_set mikrotik_ssh_key_path "$key_path"
+  state_set mikrotik_backup_retention_count "$retention"
 
   ok "Saved MikroTik connection settings."
+}
+
+prompt_alerting() {
+  local webhook smtp_to smtp_from
+  webhook="$(state_get alert_webhook_url "")"
+  smtp_to="$(state_get alert_smtp_to "")"
+  smtp_from="$(state_get alert_smtp_from "")"
+
+  webhook="$(ui_input "Alerting" "Optional webhook URL for alerts (leave blank to disable)" "$webhook")"
+  smtp_to="$(ui_input "Alerting" "Optional SMTP 'To' address (leave blank to disable email alerts)" "$smtp_to")"
+  smtp_from="$(ui_input "Alerting" "Optional SMTP 'From' address" "$smtp_from")"
+
+  state_set alert_webhook_url "$webhook"
+  state_set alert_smtp_to "$smtp_to"
+  state_set alert_smtp_from "$smtp_from"
+
+  ok "Saved alerting settings."
 }
 
 prompt_dns_provider() {
@@ -185,7 +206,8 @@ main() {
       7 "🛜 DHCP location" \
       8 "🔐 Secrets management" \
       9 "🧩 Services to build" \
-      10 "⬅️ Back"
+      10 "🚨 Alerting" \
+      11 "⬅️ Back"
 
     case "$choice" in
       1) prompt_proxmox ;;
@@ -197,7 +219,8 @@ main() {
       7) prompt_dhcp_mode ;;
       8) prompt_secrets ;;
       9) prompt_targets ;;
-      10|"") break ;;
+      10) prompt_alerting ;;
+      11|"") break ;;
     esac
   done
 }

@@ -24,3 +24,5 @@ terraform/*.tfstate*
 *.sops.yaml.dec
 **/secrets.yaml
 **/secrets.yml
+# Local-only files
+.local/

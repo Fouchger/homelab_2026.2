@@ -18,6 +18,7 @@ source "${REPO_ROOT}/lib/logging.sh"
 source "${REPO_ROOT}/lib/core.sh"
 source "${REPO_ROOT}/lib/run.sh"
 source "${REPO_ROOT}/lib/state.sh"
+source "${REPO_ROOT}/scripts/alerts/notify.sh"
 
 run_init "mikrotik_healthcheck"
 state_init
@@ -36,6 +37,7 @@ DOMAIN="${LAN_DOMAIN:-home.arpa}"
 
 STATUS_DIR="${HOME}/.config/homelab_2026_2/mikrotik"
 STATUS_FILE="${STATUS_DIR}/health.status"
+ALERT_LOG="${STATUS_DIR}/health.failures.log"
 mkdir -p "${STATUS_DIR}"
 
 result_ok=1
@@ -71,4 +73,10 @@ if [[ "${result_ok}" -eq 1 ]]; then
 else
   printf 'FAIL %s\n' "$(date -Is)" >"${STATUS_FILE}"
   warn "Health check found issues"
+
+  # Persist a dedicated failure log (useful for dashboards and troubleshooting).
+  printf '%s %s\n' "$(date -Is)" "Health check failed for ${MT_HOST}" >>"${ALERT_LOG}"
+
+  # Optional alerting: local JSON log plus webhook/SMTP if configured.
+  notify_event "mikrotik" "ERROR" "MikroTik health check failed" "{\"router\":\"${MT_HOST}\",\"dns01\":\"${DNS1}\",\"dns02\":\"${DNS2}\"}"
 fi

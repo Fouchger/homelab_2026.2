@@ -19,6 +19,12 @@ STATE_ENV="/root/.config/homelab_2026_2/state.env"
 # shellcheck disable=SC1090
 [[ -r "${STATE_ENV}" ]] && source "${STATE_ENV}" || true
 
+# Optional alerting helper (webhook/SMTP). If it is missing, health checks still work.
+if [[ -r "/opt/homelab/mikrotik/notify.sh" ]]; then
+  # shellcheck disable=SC1091
+  source "/opt/homelab/mikrotik/notify.sh"
+fi
+
 MT_HOST="${MIKROTIK_HOST:-${LAN_GATEWAY:-192.168.88.1}}"
 DNS1="${DNS01_IP:-192.168.88.2}"
 DNS2="${DNS02_IP:-192.168.88.3}"
@@ -26,6 +32,7 @@ DOMAIN="${LAN_DOMAIN:-home.arpa}"
 
 STATUS_DIR="/root/.config/homelab_2026_2/mikrotik"
 STATUS_FILE="${STATUS_DIR}/health.status"
+FAIL_LOG="${STATUS_DIR}/health.failures.log"
 mkdir -p "${STATUS_DIR}"
 
 need() { command -v "$1" >/dev/null 2>&1 || { log "ERROR missing dependency: $1"; exit 1; }; }
@@ -64,5 +71,9 @@ fi
 } >"${STATUS_FILE}"
 
 if [[ "${fail_count}" -gt 0 ]]; then
+  printf '%s %s\n' "$(date -Is)" "Health check failed for ${MT_HOST} (ok=${ok_count} fail=${fail_count})" >>"${FAIL_LOG}"
+  if command -v notify_event >/dev/null 2>&1; then
+    notify_event "mikrotik" "ERROR" "MikroTik health check failed" "{\"router\":\"${MT_HOST}\",\"ok\":${ok_count},\"fail\":${fail_count},\"dns01\":\"${DNS1}\",\"dns02\":\"${DNS2}\"}"
+  fi
   exit 2
 fi

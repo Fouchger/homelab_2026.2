@@ -35,13 +35,17 @@ mikrotik_menu() {
       1 "💾 Backup MikroTik now" \
       2 "🩺 Run health check now" \
       3 "🌐 Configure DHCP to advertise dns01 + dns02" \
-      4 "⬅️ Back"
+      4 "🧾 Install start config locally" \
+      5 "🚀 Apply start config to MikroTik" \
+      6 "⬅️ Back"
 
     case "${choice:-}" in
       1) scripts/mikrotik/backup.sh ;;
       2) scripts/mikrotik/healthcheck.sh ;;
       3) scripts/mikrotik/configure-dns.sh ;;
-      4|"") break ;;
+      4) scripts/mikrotik/install-start-config.sh ;;
+      5) scripts/mikrotik/apply-start-config.sh ;;
+      6|"") break ;;
     esac
   done
 }

@@ -86,6 +86,15 @@ Optional, but recommended for day-two operations:
 
 See `docs/mikrotik.md`.
 
+## Alerting
+
+Alerting is opt-in and currently supports:
+
+- Local JSON alert log
+- Optional webhook and SMTP hooks
+
+See `docs/alerting.md`.
+
 ## Secrets workflow
 
 Recommended pattern:

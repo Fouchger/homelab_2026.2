@@ -40,6 +40,24 @@ Backup location on admin01:
 
 - `/root/.config/homelab_2026_2/mikrotik/backups`
 
+Retention policy:
+
+- Keep last **N** backup sets (export + binary) per router.
+- Configurable via `MIKROTIK_BACKUP_RETENTION_COUNT` in `state.env`.
+- Default is `30`. Set to `0` to disable pruning.
+
+## Start config import (opt-in)
+
+You can optionally import a baseline RouterOS `.rsc` file.
+
+- Menu: **MikroTik** then **Install start config locally** and **Apply start config to MikroTik**.
+- The config file lives locally at `~/.config/homelab_2026_2/mikrotik/start_config.rsc`.
+
+Important:
+
+- Importing an RSC can change networking. Run this only when you have console access or a safe rollback plan.
+- The repository may include a `.local/` example, but `.local/` is gitignored so you do not leak device identifiers.
+
 ## Health checks
 
 The health check script validates:
@@ -51,6 +69,13 @@ The health check script validates:
 Status file:
 
 - `/root/.config/homelab_2026_2/mikrotik/health.status`
+
+Alerting:
+
+- Failures are appended to `/root/.config/homelab_2026_2/mikrotik/health.failures.log`.
+- Alerts are also recorded in JSON at `/root/.config/homelab_2026_2/alerts/alerts.log`.
+- Optional webhook: set `ALERT_WEBHOOK_URL`.
+- Optional SMTP: set `ALERT_SMTP_TO` (and `ALERT_SMTP_FROM` if needed) and ensure a `sendmail` implementation is available (the admin role installs `msmtp-mta`).
 
 ## DNS high availability on MikroTik
 
