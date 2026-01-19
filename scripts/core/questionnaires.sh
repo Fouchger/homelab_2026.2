@@ -73,20 +73,32 @@ prompt_mikrotik() {
 }
 
 prompt_alerting() {
-  local webhook smtp_to smtp_from
-  webhook="$(state_get alert_webhook_url "")"
-  smtp_to="$(state_get alert_smtp_to "")"
-  smtp_from="$(state_get alert_smtp_from "")"
+  local webhook smtp_to smtp_from throttle_seconds throttle_key_mode schema_version
+  webhook="$(state_get alert_webhook_url \"\")"
+  smtp_to="$(state_get alert_smtp_to \"\")"
+  smtp_from="$(state_get alert_smtp_from \"\")"
+  throttle_seconds="$(state_get alert_throttle_seconds \"900\")"
+  throttle_key_mode="$(state_get alert_throttle_key_mode \"component_severity\")"
+  schema_version="$(state_get alert_schema_version \"1.0\")"
 
-  webhook="$(ui_input "Alerting" "Optional webhook URL for alerts (leave blank to disable)" "$webhook")"
-  smtp_to="$(ui_input "Alerting" "Optional SMTP 'To' address (leave blank to disable email alerts)" "$smtp_to")"
-  smtp_from="$(ui_input "Alerting" "Optional SMTP 'From' address" "$smtp_from")"
+  webhook="$(ui_input \"Alerting\" \"Optional webhook URL for alerts (leave blank to disable)\" \"$webhook\")"
+  smtp_to="$(ui_input \"Alerting\" \"Optional SMTP 'To' address (leave blank to disable email alerts)\" \"$smtp_to\")"
+  smtp_from="$(ui_input \"Alerting\" \"Optional SMTP 'From' address\" \"$smtp_from\")"
 
-  state_set alert_webhook_url "$webhook"
-  state_set alert_smtp_to "$smtp_to"
-  state_set alert_smtp_from "$smtp_from"
+  throttle_seconds="$(ui_input \"Alerting\" \"Throttle window in seconds for webhook/SMTP (0 disables throttling)\" \"$throttle_seconds\")"
+  ui_menu \"Alerting\" \"Throttling key (controls what counts as the same alert)\" throttle_key_mode \
+    component \"Component only\" \
+    component_severity \"Component + severity\"
+  schema_version="$(ui_input \"Alerting\" \"Alert payload schema version (advanced)\" \"$schema_version\")"
 
-  ok "Saved alerting settings."
+  state_set alert_webhook_url \"$webhook\"
+  state_set alert_smtp_to \"$smtp_to\"
+  state_set alert_smtp_from \"$smtp_from\"
+  state_set alert_throttle_seconds \"$throttle_seconds\"
+  state_set alert_throttle_key_mode \"$throttle_key_mode\"
+  state_set alert_schema_version \"$schema_version\"
+
+  ok \"Saved alerting settings.\"
 }
 
 prompt_dns_provider() {

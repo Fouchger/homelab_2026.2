@@ -2,12 +2,14 @@
 # -----------------------------------------------------------------------------
 # Filename: scripts/mikrotik/healthcheck.sh
 # Created: 2026-01-19
+# Updated: 2026-01-19
 # Description: Health checks for MikroTik edge and core services.
 # Usage:
 #   scripts/mikrotik/healthcheck.sh
 # Developer notes:
 #   - Intended to run on admin01 via systemd timer.
 #   - Writes a small status file for menu display.
+#   - Alerting is opt-in; local logs always update.
 # -----------------------------------------------------------------------------
 
 set -Eeuo pipefail
@@ -37,32 +39,34 @@ DOMAIN="${LAN_DOMAIN:-home.arpa}"
 
 STATUS_DIR="${HOME}/.config/homelab_2026_2/mikrotik"
 STATUS_FILE="${STATUS_DIR}/health.status"
-ALERT_LOG="${STATUS_DIR}/health.failures.log"
+FAIL_TEXT_LOG="${STATUS_DIR}/health.failures.log"
 mkdir -p "${STATUS_DIR}"
 
 result_ok=1
+failures=()
 
 check() {
   local label="$1"
   shift
   if "$@" >/dev/null 2>&1; then
-    ok "${label}";
+    ok "${label}"
   else
-    warn "${label}";
+    warn "${label}"
     result_ok=0
+    failures+=("${label}")
   fi
 }
 
 info "Checking MikroTik reachability (${MT_HOST})"
-check "MikroTik ping" ping -c 1 -W 1 "${MT_HOST}"
+check "ping_mikrotik" ping -c 1 -W 1 "${MT_HOST}"
 
 info "Checking internet egress"
-check "HTTPS to 1.1.1.1" curl -fsS --max-time 3 https://1.1.1.1
+check "internet_https" curl -fsS --max-time 3 https://1.1.1.1
 
 if command -v dig >/dev/null 2>&1; then
   info "Checking DNS resolution against homelab DNS nodes"
-  check "DNS via dns01" dig +time=2 +tries=1 @"${DNS1}" "example.com" A
-  check "DNS via dns02" dig +time=2 +tries=1 @"${DNS2}" "example.com" A
+  check "dns01_resolve" dig +time=2 +tries=1 @"${DNS1}" "example.com" A
+  check "dns02_resolve" dig +time=2 +tries=1 @"${DNS2}" "example.com" A
 else
   warn "dig not installed; skipping DNS checks (install dnsutils)"
 fi
@@ -74,9 +78,9 @@ else
   printf 'FAIL %s\n' "$(date -Is)" >"${STATUS_FILE}"
   warn "Health check found issues"
 
-  # Persist a dedicated failure log (useful for dashboards and troubleshooting).
-  printf '%s %s\n' "$(date -Is)" "Health check failed for ${MT_HOST}" >>"${ALERT_LOG}"
+  printf '%s %s\n' "$(date -Is)" "Health check failed for ${MT_HOST} failures=${failures[*]}" >>"${FAIL_TEXT_LOG}"
 
-  # Optional alerting: local JSON log plus webhook/SMTP if configured.
-  notify_event "mikrotik" "ERROR" "MikroTik health check failed" "{\"router\":\"${MT_HOST}\",\"dns01\":\"${DNS1}\",\"dns02\":\"${DNS2}\"}"
+  # Optional alerting: local JSON log always; webhook/SMTP if configured.
+  # Throttling is handled by notify.sh.
+  notify_event "mikrotik" "ERROR" "MikroTik health check failed" "{\"router\":\"${MT_HOST}\",\"dns01\":\"${DNS1}\",\"dns02\":\"${DNS2}\",\"failures\":[\"$(IFS='\",\"'; echo "${failures[*]}")\"]}"
 fi

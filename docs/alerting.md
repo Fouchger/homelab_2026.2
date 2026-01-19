@@ -38,3 +38,26 @@ Requirement:
 - A working `sendmail` implementation (the admin role installs `msmtp-mta`).
 
 If you need SMTP auth, do not store passwords in Git or in `state.env`. Fetch a password at runtime (Vaultwarden + SOPS), export it into the session, and have `msmtp` reference it.
+
+## Payload schema and versioning
+
+Webhook and SMTP payloads include:
+
+- `schema`: `homelab.alert`
+- `schema_version`: defaults to `1.0`
+- `project`: `homelab_2026.2`
+
+You can override the schema version (advanced) via:
+
+- `ALERT_SCHEMA_VERSION=1.0`
+
+## Throttling
+
+To avoid alert spam, webhook and SMTP notifications are throttled by default. Local logging always happens.
+
+Configuration (in `~/.config/homelab_2026_2/state.env` or exported in your shell):
+
+- `ALERT_THROTTLE_SECONDS` (default: `900`). Set to `0` to disable throttling.
+- `ALERT_THROTTLE_KEY_MODE`:
+  - `component_severity` (default)
+  - `component`
