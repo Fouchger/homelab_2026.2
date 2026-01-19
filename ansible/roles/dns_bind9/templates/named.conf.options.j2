@@ -1,0 +1,24 @@
+// -----------------------------------------------------------------------------
+// Template: named.conf.options
+// Created: 2026-01-18
+// Description: BIND9 recursive resolver defaults for homelab_2026.2.
+// -----------------------------------------------------------------------------
+
+options {
+  directory "/var/cache/bind";
+
+  recursion yes;
+  allow-recursion { {{ homelab_lan_cidr | default('192.168.88.0/24') }}; };
+  allow-query { any; };
+
+  dnssec-validation auto;
+
+  listen-on { any; };
+  listen-on-v6 { any; };
+
+  # Forward to upstream DNS if desired (leave empty to use root hints).
+  forwarders {
+    {{ homelab_upstream_dns_1 | default('1.1.1.1') }};
+    {{ homelab_upstream_dns_2 | default('9.9.9.9') }};
+  };
+};

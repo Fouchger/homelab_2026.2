@@ -1,0 +1,23 @@
+# -----------------------------------------------------------------------------
+# Filename: /etc/systemd/system/coredns.service
+# Managed by: homelab_2026.2 (Ansible)
+# Created: 2026-01-18
+# Description: CoreDNS systemd unit.
+# -----------------------------------------------------------------------------
+
+[Unit]
+Description=CoreDNS
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=coredns
+Group=coredns
+ExecStart=/opt/coredns/coredns -conf /etc/coredns/Corefile
+Restart=on-failure
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

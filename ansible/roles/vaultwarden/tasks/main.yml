@@ -1,0 +1,58 @@
+---
+# -----------------------------------------------------------------------------
+# Role: vaultwarden
+# Created: 2026-01-18
+# Description: Vaultwarden via Docker Compose (no secrets committed).
+# Developer notes:
+# - Configure via environment variables or a .env file placed manually on the
+#   admin node (not tracked by Git).
+# ----------------------------------------------------------------------------
+
+- name: Create vaultwarden directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - /opt/vaultwarden
+    - /opt/vaultwarden/data
+
+- name: Deploy docker-compose.yml
+  ansible.builtin.copy:
+    dest: /opt/vaultwarden/docker-compose.yml
+    mode: "0644"
+    content: |
+      version: "3.8"
+      services:
+        vaultwarden:
+          image: vaultwarden/server:latest
+          container_name: vaultwarden
+          restart: unless-stopped
+          ports:
+            - "8081:80"
+          volumes:
+            - ./data:/data
+          environment:
+            - WEBSOCKET_ENABLED=true
+            # Recommended: set ADMIN_TOKEN via /opt/vaultwarden/.env (not in git)
+
+- name: Deploy .env placeholder (safe defaults)
+  ansible.builtin.copy:
+    dest: /opt/vaultwarden/.env
+    mode: "0600"
+    content: |
+      # ----------------------------------------------------------------------
+      # Vaultwarden secrets
+      # Place secrets here, do not commit this file.
+      # ADMIN_TOKEN=<generate-a-strong-random-token>
+      # DOMAIN=https://vaultwarden.example
+      # ----------------------------------------------------------------------
+  force: false
+
+- name: Start vaultwarden
+  ansible.builtin.shell: |
+    set -e
+    cd /opt/vaultwarden
+    docker compose up -d
+  args:
+    chdir: /opt/vaultwarden

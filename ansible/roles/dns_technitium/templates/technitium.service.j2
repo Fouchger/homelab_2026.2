@@ -1,0 +1,26 @@
+# -----------------------------------------------------------------------------
+# Filename: /etc/systemd/system/technitium-dns.service
+# Managed by: homelab_2026.2 (Ansible)
+# Created: 2026-01-18
+# Description: Run Technitium DNS Server in Docker.
+# Developer notes:
+#   - Web UI: http://<host>:5380
+# -----------------------------------------------------------------------------
+
+[Unit]
+Description=Technitium DNS Server
+After=network-online.target docker.service
+Wants=network-online.target docker.service
+
+[Service]
+Restart=always
+ExecStartPre=-/usr/bin/docker rm -f technitium-dns
+ExecStart=/usr/bin/docker run --name technitium-dns \
+  --network host \
+  -v /opt/technitium:/etc/dns \
+  technitium/dns-server:latest
+ExecStop=/usr/bin/docker stop technitium-dns
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

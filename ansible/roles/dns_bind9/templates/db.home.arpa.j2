@@ -1,0 +1,15 @@
+$TTL 86400
+@   IN  SOA ns1.{{ homelab_lan_domain | default('home.arpa') }}. admin.{{ homelab_lan_domain | default('home.arpa') }}. (
+        2026011801 ; serial
+        3600       ; refresh
+        1800       ; retry
+        604800     ; expire
+        86400 )    ; minimum
+
+@   IN  NS  ns1.{{ homelab_lan_domain | default('home.arpa') }}.
+@   IN  NS  ns2.{{ homelab_lan_domain | default('home.arpa') }}.
+
+ns1 IN  A   {{ hostvars['dns01'].ansible_host | default('192.168.88.2') }}
+ns2 IN  A   {{ hostvars['dns02'].ansible_host | default('192.168.88.3') }}
+
+admin01 IN A {{ hostvars['admin01'].ansible_host | default('192.168.88.10') }}

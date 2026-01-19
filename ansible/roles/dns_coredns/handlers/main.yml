@@ -1,0 +1,15 @@
+---
+# -----------------------------------------------------------------------------
+# Filename: ansible/roles/dns_coredns/handlers/main.yml
+# Created: 2026-01-18
+# Description: Handlers for CoreDNS.
+# -----------------------------------------------------------------------------
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Restart coredns
+  ansible.builtin.service:
+    name: coredns
+    state: restarted

@@ -1,0 +1,27 @@
+# -----------------------------------------------------------------------------
+# Filename: /etc/systemd/system/adguardhome.service
+# Managed by: homelab_2026.2 (Ansible)
+# Created: 2026-01-18
+# Description: Run AdGuard Home in Docker.
+# Developer notes:
+#   - Initial setup UI: http://<host>:3000
+# -----------------------------------------------------------------------------
+
+[Unit]
+Description=AdGuard Home DNS
+After=network-online.target docker.service
+Wants=network-online.target docker.service
+
+[Service]
+Restart=always
+ExecStartPre=-/usr/bin/docker rm -f adguardhome
+ExecStart=/usr/bin/docker run --name adguardhome \
+  --network host \
+  -v /opt/adguardhome/work:/opt/adguardhome/work \
+  -v /opt/adguardhome/conf:/opt/adguardhome/conf \
+  adguard/adguardhome:latest
+ExecStop=/usr/bin/docker stop adguardhome
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

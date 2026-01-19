@@ -1,0 +1,88 @@
+---
+# -----------------------------------------------------------------------------
+# Filename: ansible/roles/mikrotik_integration/tasks/main.yml
+# Created: 2026-01-19
+# Description: Install MikroTik backup + health checks on admin01.
+# Developer notes:
+#   - Does not store MikroTik passwords. Use SSH keys or provide password
+#     at runtime when running scripts manually.
+#   - Scripts are deployed as standalone utilities to avoid coupling timers to
+#     the git checkout location.
+# -----------------------------------------------------------------------------
+
+- name: Ensure packages for MikroTik integration are installed
+  ansible.builtin.apt:
+    name:
+      - openssh-client
+      - curl
+      - jq
+      - iputils-ping
+      - dnsutils
+      - sshpass
+    state: present
+    update_cache: true
+
+- name: Create integration directory
+  ansible.builtin.file:
+    path: /opt/homelab/mikrotik
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy MikroTik scripts
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "/opt/homelab/mikrotik/{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - { src: "mikrotik-backup.sh", dest: "backup.sh" }
+    - { src: "mikrotik-healthcheck.sh", dest: "healthcheck.sh" }
+    - { src: "mikrotik-configure-dns.sh", dest: "configure-dns.sh" }
+
+- name: Deploy systemd unit for MikroTik backups
+  ansible.builtin.template:
+    src: mikrotik-backup.service.j2
+    dest: /etc/systemd/system/mikrotik-backup.service
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Deploy systemd timer for MikroTik backups
+  ansible.builtin.template:
+    src: mikrotik-backup.timer.j2
+    dest: /etc/systemd/system/mikrotik-backup.timer
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Deploy systemd unit for MikroTik health checks
+  ansible.builtin.template:
+    src: mikrotik-healthcheck.service.j2
+    dest: /etc/systemd/system/mikrotik-healthcheck.service
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Deploy systemd timer for MikroTik health checks
+  ansible.builtin.template:
+    src: mikrotik-healthcheck.timer.j2
+    dest: /etc/systemd/system/mikrotik-healthcheck.timer
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Enable and start MikroTik timers
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - mikrotik-backup.timer
+    - mikrotik-healthcheck.timer

@@ -1,0 +1,14 @@
+---
+# -----------------------------------------------------------------------------
+# Role: dhcp_server
+# Created: 2026-01-18
+# Description: DHCP server (placeholder).
+# Developer notes:
+# - Default design keeps DHCP on MikroTik.
+# - If you later move DHCP into Proxmox, replace this role with Kea DHCP
+#   or dnsmasq and wire it into Terraform.
+# ----------------------------------------------------------------------------
+
+- name: Fail fast - DHCP role not implemented
+  ansible.builtin.fail:
+    msg: "DHCP role is intentionally a placeholder. Keep DHCP on MikroTik, or implement Kea/dnsmasq here." 

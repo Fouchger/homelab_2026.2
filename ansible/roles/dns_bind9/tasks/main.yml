@@ -1,0 +1,30 @@
+---
+# -----------------------------------------------------------------------------
+# Role: dns_bind9
+# Created: 2026-01-18
+# Description: BIND9 recursive resolver with optional local zone.
+# Developer notes:
+# - Default config is a caching resolver for the LAN.
+# - You can extend with authoritative zones later.
+# -----------------------------------------------------------------------------
+
+- name: Install BIND9
+  ansible.builtin.apt:
+    name:
+      - bind9
+      - bind9-utils
+      - dnsutils
+    state: present
+
+- name: Configure named options
+  ansible.builtin.template:
+    src: named.conf.options.j2
+    dest: /etc/bind/named.conf.options
+    mode: "0644"
+  notify: Restart bind9
+
+- name: Ensure bind9 enabled
+  ansible.builtin.systemd:
+    name: bind9
+    enabled: true
+    state: started

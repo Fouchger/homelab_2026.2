@@ -1,0 +1,53 @@
+---
+# -----------------------------------------------------------------------------
+# Role: dns_coredns
+# Created: 2026-01-18
+# Description: CoreDNS via Docker.
+# Developer notes:
+# - Simple forwarder configuration with a stub zone for homelab_lan_domain.
+# - Extend Corefile as your homelab grows.
+# ----------------------------------------------------------------------------
+
+- name: Create CoreDNS directory
+  ansible.builtin.file:
+    path: /opt/coredns
+    state: directory
+    mode: "0755"
+
+- name: Deploy Corefile
+  ansible.builtin.copy:
+    dest: /opt/coredns/Corefile
+    mode: "0644"
+    content: |
+      .:53 {
+        errors
+        log
+        health
+        ready
+        cache 30
+        forward . {{ homelab_upstream_dns_1 | default('1.1.1.1') }} {{ homelab_upstream_dns_2 | default('9.9.9.9') }}
+      }
+
+- name: Deploy CoreDNS docker-compose.yml
+  ansible.builtin.copy:
+    dest: /opt/coredns/docker-compose.yml
+    mode: "0644"
+    content: |
+      version: "3.8"
+      services:
+        coredns:
+          image: coredns/coredns:latest
+          container_name: coredns
+          restart: unless-stopped
+          network_mode: "host"
+          volumes:
+            - ./Corefile:/Corefile:ro
+          command: ["-conf", "/Corefile"]
+
+- name: Start CoreDNS
+  ansible.builtin.shell: |
+    set -e
+    cd /opt/coredns
+    docker compose up -d
+  args:
+    chdir: /opt/coredns

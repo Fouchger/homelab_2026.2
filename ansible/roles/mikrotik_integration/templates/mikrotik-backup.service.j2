@@ -1,0 +1,18 @@
+# -----------------------------------------------------------------------------
+# Filename: ansible/roles/mikrotik_integration/templates/mikrotik-backup.service.j2
+# Created: 2026-01-19
+# Description: Systemd service to back up MikroTik config.
+# Developer notes:
+#   - EnvironmentFile uses state.env for host/user/port/key path.
+# -----------------------------------------------------------------------------
+
+[Unit]
+Description=MikroTik backup (homelab_2026.2)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+EnvironmentFile=-/root/.config/homelab_2026_2/state.env
+ExecStart=/opt/homelab/mikrotik/backup.sh

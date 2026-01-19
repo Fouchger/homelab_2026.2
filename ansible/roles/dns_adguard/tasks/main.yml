@@ -1,0 +1,43 @@
+---
+# -----------------------------------------------------------------------------
+# Role: dns_adguard
+# Created: 2026-01-18
+# Description: AdGuard Home via Docker.
+# Developer notes:
+# - Listens on 53/tcp+udp and 3000/tcp (initial setup UI).
+# - Intended for privileged Docker-capable LXC.
+# ----------------------------------------------------------------------------
+
+- name: Create AdGuard directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - /opt/adguard
+    - /opt/adguard/work
+    - /opt/adguard/conf
+
+- name: Deploy AdGuard docker-compose.yml
+  ansible.builtin.copy:
+    dest: /opt/adguard/docker-compose.yml
+    mode: "0644"
+    content: |
+      version: "3.8"
+      services:
+        adguard:
+          image: adguard/adguardhome:latest
+          container_name: adguardhome
+          restart: unless-stopped
+          network_mode: "host"
+          volumes:
+            - ./work:/opt/adguardhome/work
+            - ./conf:/opt/adguardhome/conf
+
+- name: Start AdGuard
+  ansible.builtin.shell: |
+    set -e
+    cd /opt/adguard
+    docker compose up -d
+  args:
+    chdir: /opt/adguard

@@ -1,0 +1,33 @@
+; -----------------------------------------------------------------------------
+; Filename: /etc/bind/zones/db.{{ homelab_lan_domain }}
+; Managed by: homelab_2026.2 (Ansible)
+; Created: 2026-01-18
+; Description: Authoritative zone for homelab.
+; Developer notes:
+;   - Keep TTLs short while iterating.
+;   - This is a forward-only zone (no reverse zone yet).
+; -----------------------------------------------------------------------------
+
+$TTL 300
+@   IN  SOA ns1.{{ homelab_lan_domain }}. hostmaster.{{ homelab_lan_domain }}. (
+        {{ '%Y%m%d%H' | strftime(ansible_date_time.epoch) }} ; serial
+        3600       ; refresh
+        900        ; retry
+        1209600    ; expire
+        300 )      ; negative cache
+
+    IN  NS   ns1.{{ homelab_lan_domain }}.
+
+ns1 IN  A    {{ ansible_default_ipv4.address }}
+
+{% set records = homelab_dns_host_records | default({
+  'admin': '192.168.88.10',
+  'dns01': '192.168.88.2',
+  'dhcp01': '192.168.88.3',
+  'ad01': '192.168.88.4',
+  'udms01': '192.168.88.20'
+}) %}
+
+{% for name, ip in records.items() %}
+{{ name }} IN  A  {{ ip }}
+{% endfor %}

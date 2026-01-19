@@ -1,0 +1,26 @@
+# Local state
+/.env
+/.venv/
+/.terraform/
+terraform/.terraform/
+terraform/*.tfstate*
+
+# Homelab state (do not commit)
+**/state.env
+**/logs/
+
+# Secrets
+**/*.sops.*
+**/*.age
+**/*.key
+**/*.token
+
+# Editors
+.vscode/
+.idea/
+.DS_Store
+
+# Secrets and local state
+*.sops.yaml.dec
+**/secrets.yaml
+**/secrets.yml

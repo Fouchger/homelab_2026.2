@@ -1,0 +1,34 @@
+# -----------------------------------------------------------------------------
+# Filename: /etc/coredns/Corefile
+# Managed by: homelab_2026.2 (Ansible)
+# Created: 2026-01-18
+# Description: CoreDNS configuration for homelab.
+# Developer notes:
+#   - This config uses the `hosts` plugin to provide simple A records.
+#   - For larger env, generate a file from Terraform outputs.
+# -----------------------------------------------------------------------------
+
+. {
+  log
+  errors
+  health
+  ready
+
+  # Local static records
+  hosts {
+{% set records = homelab_dns_host_records | default({
+  'admin.{{ homelab_lan_domain }}': '192.168.88.10',
+  'dns01.{{ homelab_lan_domain }}': '192.168.88.2',
+  'dhcp01.{{ homelab_lan_domain }}': '192.168.88.3',
+  'ad01.{{ homelab_lan_domain }}': '192.168.88.4',
+  'udms01.{{ homelab_lan_domain }}': '192.168.88.20'
+}) %}
+{% for fqdn, ip in records.items() %}
+    {{ ip }} {{ fqdn }}
+{% endfor %}
+    fallthrough
+  }
+
+  forward . {% for ip in (homelab_dns_upstreams | default(['1.1.1.1','8.8.8.8'])) %}{{ ip }} {% endfor %}
+  cache 30
+}

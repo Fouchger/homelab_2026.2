@@ -1,0 +1,12 @@
+---
+# -----------------------------------------------------------------------------
+# Role: dns_server
+# Created: 2026-01-18
+# Description: DNS provider selector role.
+# Developer notes:
+# - Switch using homelab_dns_provider (bind9|adguard|coredns|technitium)
+# ----------------------------------------------------------------------------
+
+- name: Select DNS provider
+  ansible.builtin.include_role:
+    name: "dns_{{ homelab_dns_provider | default('bind9') }}"

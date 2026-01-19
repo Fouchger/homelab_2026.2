@@ -1,0 +1,43 @@
+---
+# -----------------------------------------------------------------------------
+# Role: dns_technitium
+# Created: 2026-01-18
+# Description: Technitium DNS Server via Docker.
+# Developer notes:
+# - UI on 5380/tcp.
+# - DNS on 53/tcp+udp (host networking).
+# ----------------------------------------------------------------------------
+
+- name: Create Technitium directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - /opt/technitium
+    - /opt/technitium/config
+
+- name: Deploy Technitium docker-compose.yml
+  ansible.builtin.copy:
+    dest: /opt/technitium/docker-compose.yml
+    mode: "0644"
+    content: |
+      version: "3.8"
+      services:
+        dns:
+          image: technitium/dns-server:latest
+          container_name: technitium-dns
+          restart: unless-stopped
+          network_mode: "host"
+          volumes:
+            - ./config:/etc/dns
+          environment:
+            - DNS_SERVER_DOMAIN={{ homelab_lan_domain | default('home.arpa') }}
+
+- name: Start Technitium
+  ansible.builtin.shell: |
+    set -e
+    cd /opt/technitium
+    docker compose up -d
+  args:
+    chdir: /opt/technitium

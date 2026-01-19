@@ -1,0 +1,19 @@
+# -----------------------------------------------------------------------------
+# Filename: ansible/roles/mikrotik_integration/templates/mikrotik-backup.timer.j2
+# Created: 2026-01-19
+# Description: Systemd timer for MikroTik backups.
+# Developer notes:
+#   - Default schedule is daily at 03:15.
+#   - You can adjust by overriding homelab_mikrotik_backup_on_calendar.
+# -----------------------------------------------------------------------------
+
+[Unit]
+Description=Run MikroTik backups daily (homelab_2026.2)
+
+[Timer]
+OnCalendar={{ homelab_mikrotik_backup_on_calendar | default('*-*-* 03:15:00') }}
+Persistent=true
+RandomizedDelaySec=10m
+
+[Install]
+WantedBy=timers.target

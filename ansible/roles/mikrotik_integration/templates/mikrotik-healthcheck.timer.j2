@@ -1,0 +1,19 @@
+# -----------------------------------------------------------------------------
+# Filename: ansible/roles/mikrotik_integration/templates/mikrotik-healthcheck.timer.j2
+# Created: 2026-01-19
+# Description: Systemd timer for MikroTik health checks.
+# Developer notes:
+#   - Default schedule every 5 minutes.
+#   - You can adjust by overriding homelab_mikrotik_healthcheck_on_unit_active_sec.
+# -----------------------------------------------------------------------------
+
+[Unit]
+Description=Run MikroTik health checks (homelab_2026.2)
+
+[Timer]
+OnBootSec=2m
+OnUnitActiveSec={{ homelab_mikrotik_healthcheck_on_unit_active_sec | default('5m') }}
+Persistent=true
+
+[Install]
+WantedBy=timers.target

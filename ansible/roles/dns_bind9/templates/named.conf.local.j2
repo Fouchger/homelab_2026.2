@@ -1,0 +1,4 @@
+zone "{{ homelab_lan_domain | default('home.arpa') }}" {
+  type master;
+  file "/etc/bind/db.{{ homelab_lan_domain | default('home.arpa') }}";
+};

@@ -1,0 +1,15 @@
+---
+# -----------------------------------------------------------------------------
+# Filename: ansible/roles/dns_technitium/handlers/main.yml
+# Created: 2026-01-18
+# Description: Handlers for Technitium DNS.
+# -----------------------------------------------------------------------------
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Restart technitium-dns
+  ansible.builtin.service:
+    name: technitium-dns
+    state: restarted
