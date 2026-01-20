@@ -23,6 +23,11 @@ source "${REPO_ROOT}/lib/ui.sh"
 run_init "terraform"
 state_init
 
+# Configuration validation (opt-out)
+if [[ "${SKIP_VALIDATE:-no}" != "yes" ]]; then
+  "${REPO_ROOT}/scripts/core/validate.sh" || exit $?
+fi
+
 ACTION="${1:-plan}"
 case "${ACTION}" in plan|apply|destroy) : ;; *) error "Unknown action: ${ACTION}"; exit 2;; esac
 

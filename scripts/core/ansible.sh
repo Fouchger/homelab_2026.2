@@ -23,6 +23,11 @@ source "${REPO_ROOT}/lib/state.sh"
 run_init "ansible"
 state_init
 
+# Configuration validation (opt-out)
+if [[ "${SKIP_VALIDATE:-no}" != "yes" ]]; then
+  "${REPO_ROOT}/scripts/core/validate.sh" || exit $?
+fi
+
 need_cmd ansible-playbook || exit 1
 
 DEFAULT_INV="${REPO_ROOT}/inventories/generated.yml"
