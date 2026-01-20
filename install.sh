@@ -36,6 +36,7 @@ mkdir -p "$(dirname "${HOMELAB_DIR}")"
 if [ -d "${HOMELAB_DIR}/.git" ]; then
   echo "Updating existing repo in ${HOMELAB_DIR}"
   git -C "${HOMELAB_DIR}" pull --ff-only
+  cd "${HOMELAB_DIR}"
   bash scripts/make-executable.sh
 else
   echo "Cloning repo to ${HOMELAB_DIR}"
