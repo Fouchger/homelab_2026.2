@@ -1,5 +1,9 @@
 # homelab_2026.2
 
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/Fouchger/homelab_2026.2/main/install.sh)"
+```
+
 A modular, Proxmox-first homelab automation repo designed for repeatable builds, safe day-two ops, and ongoing expansion.
 
 ## What this repo gives you now
