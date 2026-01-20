@@ -46,7 +46,7 @@ STATE_ENV="${HOME}/.config/homelab_2026_2/state.env"
 
 PROXMOX_HOST="${PROXMOX_HOST:-192.168.88.250}"
 PVE_USER_NAME="${PVE_USER_NAME:-homelab_automation}"
-PVE_TOKEN_ID="${PVE_TOKEN_ID:-homelab_2026_2}"
+PVE_TOKEN_ID="${PVE_TOKEN_ID:-homelab_automation_api}"
 TOKEN_OUT_DIR="${TOKEN_OUT_DIR:-$HOME/.proxmox}"
 TOKEN_FILE="${TOKEN_OUT_FILE:-${TOKEN_OUT_DIR}/${PROXMOX_HOST}_${PVE_USER_NAME}_${PVE_TOKEN_ID}.token}"
 

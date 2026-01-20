@@ -46,9 +46,9 @@ PROXMOX_SSH_PORT="${PROXMOX_SSH_PORT:-22}"
 
 PVE_REALM="${PVE_REALM:-pve}"
 
-PVE_USER_NAME="${PVE_USER_NAME:-homelab_2026_2_automation}"
-PVE_ROLE_NAME="${PVE_ROLE_NAME:-Homelab2026_2Automation}"
-PVE_TOKEN_ID="${PVE_TOKEN_ID:-homelab_2026_2_api}"
+PVE_USER_NAME="${PVE_USER_NAME:-homelab_automation}"
+PVE_ROLE_NAME="${PVE_ROLE_NAME:-Homelab_Automation}"
+PVE_TOKEN_ID="${PVE_TOKEN_ID:-homelab_automation_api}"
 
 ACL_PATH="${ACL_PATH:-/}"
 PROPAGATE="${PROPAGATE:-1}"
