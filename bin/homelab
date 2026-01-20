@@ -24,6 +24,54 @@ run_init "menu"
 state_init
 ui_ensure_ui_deps
 
+usage() {
+  cat <<'EOF'
+homelab_2026.2
+
+Usage:
+  bin/homelab                 Launch interactive menu
+  bin/homelab validate        Validate configuration
+  bin/homelab bootstrap       Install prerequisites on this node
+  bin/homelab plan            Terraform plan
+  bin/homelab apply           Terraform apply then render inventory
+  bin/homelab destroy         Terraform destroy
+  bin/homelab ansible [--] .. Run Ansible (passes extra args through)
+  bin/homelab healthcheck     Run end-to-end health checks
+  bin/homelab lint            Run local quality gates
+  bin/homelab settings        Launch questionnaires
+
+Notes:
+  - To opt out of validation: SKIP_VALIDATE=yes ...
+EOF
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+# Non-interactive command mode (preferred for automation).
+if [[ -n "${1:-}" ]]; then
+  cmd="$1"; shift || true
+  case "${cmd}" in
+    validate) scripts/core/validate.sh ;;
+    bootstrap) scripts/core/bootstrap.sh ;;
+    plan) scripts/proxmox/terraform.sh plan ;;
+    apply) scripts/proxmox/terraform.sh apply ;;
+    destroy) scripts/proxmox/terraform.sh destroy ;;
+    ansible) scripts/core/ansible.sh "$@" ;;
+    healthcheck) scripts/core/healthcheck.sh ;;
+    lint) scripts/core/lint.sh ;;
+    settings) scripts/core/questionnaires.sh ;;
+    *)
+      error "Unknown command: ${cmd}"
+      usage
+      exit 2
+      ;;
+  esac
+  exit 0
+fi
+
 # Ensure the terminal is restored if dialog is used.
 cleanup_ui() { command -v dialog >/dev/null 2>&1 && clear || true; }
 trap cleanup_ui EXIT

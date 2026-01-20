@@ -21,6 +21,16 @@ make bootstrap
 make menu
 ```
 
+Non-interactive (handy for repeatable runs on admin01):
+
+```bash
+bin/homelab validate
+bin/homelab plan
+bin/homelab apply
+bin/homelab ansible
+bin/homelab healthcheck
+```
+
 If you are running from a freshly cloned repo, start here:
 
 ```bash
@@ -36,6 +46,12 @@ Configuration is collected via questionnaires and stored locally in:
 Run logs are written per run to:
 
 - `~/.config/homelab_2026_2/logs/*.log`
+
+Quality gates (best-effort, optional):
+
+```bash
+make lint
+```
 
 ## Environment defaults used by this repo
 

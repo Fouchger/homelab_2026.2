@@ -21,6 +21,18 @@ bootstrap: ## Install minimal prerequisites on a fresh node and prepare tooling
 menu: ## Launch the interactive homelab menu
 	@bin/homelab
 
+.PHONY: validate
+validate: ## Validate configuration (reads ~/.config/homelab_2026_2/state.env)
+	@scripts/core/validate.sh
+
+.PHONY: healthcheck
+healthcheck: ## Run end-to-end health checks (DNS, reachability, optional HTTP)
+	@scripts/core/healthcheck.sh
+
+.PHONY: lint
+lint: ## Run local quality gates (shellcheck/ansible-lint/terraform fmt)
+	@scripts/core/lint.sh
+
 .PHONY: proxmox.token
 proxmox.token: ## Create or rotate Proxmox API token (Terraform/Ansible)
 	@scripts/proxmox/bootstrap-api-token.sh
