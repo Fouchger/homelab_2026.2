@@ -13,7 +13,7 @@ set -Eeuo pipefail
 IFS=$'\n\t'
 
 HOMELAB_GIT_URL="${HOMELAB_GIT_URL:-}"
-HOMELAB_DIR="${HOMELAB_DIR:-$HOME/.local/share/homelab_2026_2/repo}"
+HOMELAB_DIR="${HOMELAB_DIR:-$HOME/Fouchger/homelab_2026_2}"
 
 need_cmd() { command -v "$1" >/dev/null 2>&1; }
 
@@ -36,6 +36,7 @@ mkdir -p "$(dirname "${HOMELAB_DIR}")"
 if [ -d "${HOMELAB_DIR}/.git" ]; then
   echo "Updating existing repo in ${HOMELAB_DIR}"
   git -C "${HOMELAB_DIR}" pull --ff-only
+  bash scripts/make-executable.sh
 else
   echo "Cloning repo to ${HOMELAB_DIR}"
   git clone "${HOMELAB_GIT_URL}" "${HOMELAB_DIR}"
