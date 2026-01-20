@@ -7,7 +7,7 @@
 #   bash install.sh
 # Developer notes:
 #   - For unattended installs set HOMELAB_GIT_URL and HOMELAB_DIR.
-#   - This script expects a Makefile with targets: bootstrap, menu.
+#   - Ensures repository scripts are executable before running make targets.
 # -----------------------------------------------------------------------------
 
 set -Eeuo pipefail
@@ -59,15 +59,15 @@ fi
 
 cd "${HOMELAB_DIR}"
 
-[ -f "Makefile" ] || die "Makefile not found in ${HOMELAB_DIR}. Is this the right repo?"
-
-if [ -x "scripts/make-executable.sh" ]; then
-  ./scripts/make-executable.sh
-elif [ -f "scripts/make-executable.sh" ]; then
+# Ensure scripts are executable (prevents 'Permission denied' during bootstrap)
+if [ -f "scripts/make-executable.sh" ]; then
   bash scripts/make-executable.sh
 else
-  echo "Note: scripts/make-executable.sh not found; skipping."
+  echo "Note: scripts/make-executable.sh not found. Applying fallback chmod for scripts/*.sh"
+  find scripts -type f -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
 fi
+
+[ -f "Makefile" ] || die "Makefile not found in ${HOMELAB_DIR}. Is this the right repo?"
 
 make bootstrap
 make menu
