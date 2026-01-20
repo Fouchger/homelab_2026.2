@@ -17,6 +17,44 @@ IFS=$'\n\t'
 ui_has_dialog() { command -v dialog >/dev/null 2>&1; }
 ui_has_whiptail() { command -v whiptail >/dev/null 2>&1; }
 
+# -----------------------------------------------------------------------------
+# Dialog execution wrapper
+# -----------------------------------------------------------------------------
+# Purpose
+#   Ensure dialog behaves consistently across environments where stdin may not be
+#   a real TTY (for example when launched via make, wrappers, or some web
+#   consoles). Arrow keys and checklist navigation rely on ncurses reading from
+#   a proper terminal.
+#
+# Approach
+#   - Prefer reading input from /dev/tty when available.
+#   - Disable mouse support by default to avoid terminal/client incompatibility.
+#   - Fall back to plain dialog invocation if /dev/tty is unavailable.
+#
+# Notes
+#   This mirrors the robust pattern used in the standalone App Manager script.
+
+ui_dialog() {
+  # Usage: ui_dialog <dialog args...>
+  # Returns dialog exit status.
+  local -a args=("$@")
+
+  # Disable mouse unless the caller explicitly opted in.
+  # Use DIALOGOPTS so it applies consistently to all dialog widgets.
+  if [[ "${DIALOGOPTS:-}" != *"--mouse"* && "${DIALOGOPTS:-}" != *"--no-mouse"* ]]; then
+    export DIALOGOPTS="${DIALOGOPTS:-} --no-mouse"
+  fi
+
+  # Best-effort TERM normalisation for web/serial consoles.
+  export TERM="${TERM:-xterm-256color}"
+
+  if [[ -r /dev/tty && -w /dev/tty ]]; then
+    dialog "${args[@]}" </dev/tty
+  else
+    dialog "${args[@]}"
+  fi
+}
+
 ui_ensure_ui_deps() {
   if ui_has_dialog || ui_has_whiptail; then
     return 0
@@ -35,7 +73,7 @@ ui_confirm() {
   ui_ensure_ui_deps
 
   if ui_has_dialog; then
-    dialog --clear --title "$title" --yesno "$prompt" 10 70
+    ui_dialog --clear --title "$title" --yesno "$prompt" 10 70
     return $?
   elif ui_has_whiptail; then
     whiptail --title "$title" --yesno "$prompt" 10 70
@@ -59,7 +97,7 @@ ui_input() {
   ui_ensure_ui_deps
 
   if ui_has_dialog; then
-    dialog --clear --title "$title" --inputbox "$prompt" 10 80 "$default" 2>"$STATE_DIR_DEFAULT/.ui_input"
+    ui_dialog --clear --title "$title" --inputbox "$prompt" 10 80 "$default" 2>"$STATE_DIR_DEFAULT/.ui_input"
     cat "$STATE_DIR_DEFAULT/.ui_input"
   elif ui_has_whiptail; then
     whiptail --title "$title" --inputbox "$prompt" 10 80 "$default" 2>"$STATE_DIR_DEFAULT/.ui_input"
@@ -78,7 +116,7 @@ ui_menu() {
   ui_ensure_ui_deps
 
   if ui_has_dialog; then
-    dialog --clear --title "$title" --menu "$prompt" 20 90 12 "$@" 2>"$STATE_DIR_DEFAULT/.ui_menu"
+    ui_dialog --clear --title "$title" --menu "$prompt" 20 90 12 "$@" 2>"$STATE_DIR_DEFAULT/.ui_menu"
     printf -v "$outvar" '%s' "$(cat "$STATE_DIR_DEFAULT/.ui_menu")"
   elif ui_has_whiptail; then
     whiptail --title "$title" --menu "$prompt" 20 90 12 "$@" 2>"$STATE_DIR_DEFAULT/.ui_menu"
@@ -105,7 +143,7 @@ ui_checklist() {
   ui_ensure_ui_deps
 
   if ui_has_dialog; then
-    dialog --clear --title "$title" --checklist "$prompt" 22 100 14 "$@" 2>"$STATE_DIR_DEFAULT/.ui_check"
+    ui_dialog --clear --title "$title" --checklist "$prompt" 22 100 14 "$@" 2>"$STATE_DIR_DEFAULT/.ui_check"
     # dialog returns quoted values. Remove quotes.
     local raw; raw="$(cat "$STATE_DIR_DEFAULT/.ui_check" | tr -d '"')"
     printf -v "$outvar" '%s' "$raw"
