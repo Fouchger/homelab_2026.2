@@ -32,10 +32,7 @@ done < <(find "$BASE_DIR" -type f -name "*.sh" -print0)
 
 # 2) Make key Python entrypoints executable (if present)
 TARGETS=(
-  "$BASE_DIR/00_menu/menu.sh"
-  "$BASE_DIR/01_repo/scripts/make-executable.sh"
-  "$BASE_DIR/03_ddployrr/scripts/deploy.py"
-  "$BASE_DIR/03_ddployrr/scripts/destroy-select.py"
+  "$BASE_DIR/bin/homelab"
 )
 
 echo "Making target Python scripts executable (if they exist)..."
